@@ -6,70 +6,67 @@
 /*   By: iarslan <iarslan@student.42istanbul.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/13 23:58:37 by iarslan           #+#    #+#             */
-/*   Updated: 2025/01/13 23:14:03 by iarslan          ###   ########.fr       */
+/*   Updated: 2025/01/19 03:05:59 by iarslan          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "get_next_line.h"
+#include <stdio.h>
 
-char	*ft_free(char *buffer, char *buf)
+char	*ft_free(char *buf, char *readed_line)
 {
 	char	*temp;
 
-	temp = ft_strjoin(buffer, buf);
-	free(buffer);
+	temp = ft_strjoin(buf, readed_line);
+	free(buf);
 	return (temp);
 }
 
-char	*ft_next(char *remainder)
+char	*ft_next(char *buf)
 {
 	char	*new_remainder;
 	char	*newline_pos;
 
-	if (!remainder)
-		return (NULL);
-	newline_pos = ft_strchr(remainder, '\n');
+	newline_pos = ft_strchr(buf, '\n');
 	if (!newline_pos)
 	{
-		free(remainder);
+		free(buf);
 		return (NULL);
 	}
 	new_remainder = ft_strdup(newline_pos + 1);
-	free(remainder);
+	free(buf);
 	return (new_remainder);
 }
 
-char	*ft_extract_line(char *remainder)
+char	*ft_extract_line(char *buf)
 {
 	char	*line;
-	int		i;
 	int		copy_length;
 
-	i = 0;
-	if (!remainder || !*remainder)
+	if (!buf || !*buf)
 		return (NULL);
-	while (remainder[i] && remainder[i] != '\n')
-		i++;
-	copy_length = i;
-	if (remainder[i] == '\n')
+	copy_length = 0;
+	while (buf[copy_length] && buf[copy_length] != '\n')
+		copy_length++;
+	if (buf[copy_length] == '\n')
 		copy_length++;
 	line = ft_calloc(copy_length + 1, sizeof(char));
 	if (!line)
 		return (NULL);
-	ft_memcpy(line, remainder, copy_length);
+	ft_memcpy(line, buf, copy_length);
 	return (line);
 }
 
-char	*ft_read(int fd, char *remainder)
+char	*ft_read(int fd, char *buf)
 {
 	int		chars_read;
 	char	*readed_line;
 
-	if (!remainder)
-		remainder = ft_calloc(1, 1);
+	if (!buf)
+		buf = ft_calloc(1, 1);
 	readed_line = ft_calloc(BUFFER_SIZE + 1, sizeof(char));
-	if (!readed_line || !remainder)
-		return (free(readed_line), free(remainder), NULL);
+	if (!readed_line || !buf)
+		return (free(readed_line), free(buf), NULL);
 	chars_read = 1;
 	while (chars_read > 0)
 	{
@@ -77,14 +74,14 @@ char	*ft_read(int fd, char *remainder)
 		if (chars_read < 0)
 			break ;
 		readed_line[chars_read] = '\0';
-		remainder = ft_free(remainder, readed_line);
-		if (!remainder || ft_strchr(remainder, '\n'))
+		buf = ft_free(buf, readed_line);
+		if (!buf || ft_strchr(buf, '\n'))
 			break ;
 	}
 	free(readed_line);
 	if (chars_read < 0)
-		return (free(remainder), NULL);
-	return (remainder);
+		return (free(buf), NULL);
+	return (buf);
 }
 
 char	*get_next_line(int fd)
@@ -93,17 +90,8 @@ char	*get_next_line(int fd)
 	char		*line;
 
 	if (fd < 0 || BUFFER_SIZE <= 0)
-	{
-		if (buf)
-		{
-			free(buf);
-			buf = NULL;
-		}
 		return (NULL);
-	}
 	buf = ft_read(fd, buf);
-	if (!buf)
-		return (NULL);
 	line = ft_extract_line(buf);
 	if (!line)
 	{
